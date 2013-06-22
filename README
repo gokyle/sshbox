@@ -8,6 +8,9 @@ uses cryptobox[1] as the underlying cryptographic system.
 The utility is designed for encryption smaller files (under 128M), as the file is
 read into memory.
 
+Password-protected keys aren't yet supported, and only RSA keys are
+supported at this time.
+
 
 Usage: sshbox [-ade] [-k key] source target
         -a=false: ASCII armour the box
