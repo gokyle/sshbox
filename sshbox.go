@@ -35,7 +35,7 @@ type sshPublicKey struct {
 	Exponent  []byte
 }
 
-var pubkeyRegexp = regexp.MustCompile("^ssh-rsa (\\S+).*$")
+var pubkeyRegexp = regexp.MustCompile("(?m)^ssh-... (\\S+).*$")
 var remoteCheck = regexp.MustCompile("^https?://")
 
 func main() {
@@ -86,7 +86,7 @@ func main() {
 			fmt.Println("[!] failed.")
 			os.Exit(1)
 		}
-		fmt.Println("[+] success")
+		fmt.Println("[+] success.")
 		os.Exit(0)
 	}
 }
@@ -172,6 +172,10 @@ func loadPublicKey(name string, local bool) (key *rsa.PublicKey, err error) {
 	key = new(rsa.PublicKey)
 	key.N = new(big.Int).SetBytes(pubKey.Modulus)
 	key.E = int(new(big.Int).SetBytes(pubKey.Exponent).Int64())
+	if key.N.BitLen() < 2047 {
+		fmt.Printf("[-] warning: SSH key is a weak key (consider ")
+		fmt.Println("upgrading to a 2048+ bit key).")
+	}
 	return
 }
 
@@ -189,6 +193,10 @@ func loadPrivateKey(name string) (key *rsa.PrivateKey, err error) {
 	}
 
 	key, err = x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err == nil && key.PublicKey.N.BitLen() < 2047 {
+		fmt.Printf("[-] warning: SSH key is a weak key (consider ")
+		fmt.Printf("upgrading to a 2048+ bit key.")
+	}
 	return
 
 }
