@@ -1,12 +1,13 @@
 sshbox: encrypt and decrypt files using OpenSSH keys.
 
-sshbox is a utility to encrypt and decrypt files using OpenSSH keys. The files
-may be PEM-encoded (ASCII-armoured) or DER-encoded (a binary format). Public
-keys may be fetched over HTTP(S); however, private keys must be local. sshbox
-uses cryptobox[1] as the underlying cryptographic system.
+sshbox is a utility to encrypt and decrypt files using OpenSSH keys. The
+files may be PEM-encoded (ASCII-armoured) or DER-encoded (a binary
+format). Public keys may be fetched over HTTP(S); however, private keys
+must be local. sshbox uses cryptobox[1] as the underlying cryptographic
+system. It uses the sshkey[2] package to load the keys.
 
-The utility is designed for encryption smaller files (under 128M), as the file is
-read into memory.
+The utility is designed for encryption smaller files (under 128M), as the
+file is read into memory.
 
 Password-protected keys aren't yet supported, and only RSA keys are
 supported at this time.
@@ -31,3 +32,4 @@ test of the license.
 
 
 [1] http://cryptobox.tyrfingr.is/
+[2] https://github.com/gokyle/sshkey/

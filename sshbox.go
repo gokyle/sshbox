@@ -4,22 +4,16 @@
 package main
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
-	"crypto/x509"
 	"encoding/asn1"
-	"encoding/base64"
-	"encoding/binary"
 	"encoding/pem"
 	"flag"
 	"fmt"
 	"github.com/gokyle/cryptobox/secretbox"
-	"io"
+	"github.com/gokyle/sshkey"
 	"io/ioutil"
-	"math/big"
-	"net/http"
 	"os"
 	"regexp"
 )
@@ -91,120 +85,10 @@ func main() {
 	}
 }
 
-// fetchKey retrieves the raw data for a key, either via file or an HTTP get.
-func fetchKey(name string, local bool) (kb []byte, err error) {
-	if local {
-		kb, err = ioutil.ReadFile(name)
-		if err != nil {
-			fmt.Println("[!]", err.Error())
-		}
-	} else {
-		var resp *http.Response
-		resp, err = http.Get(name)
-		if err != nil {
-			fmt.Println("[!] failed to fetch key:", err.Error())
-			return
-		}
-		defer resp.Body.Close()
-
-		kb, err = ioutil.ReadAll(resp.Body)
-	}
-	return
-}
-
-// Decode a byte slice into an RSA public key.
-func loadPublicKey(name string, local bool) (key *rsa.PublicKey, err error) {
-	kb64, err := fetchKey(name, local)
-
-	kb64 = pubkeyRegexp.ReplaceAll(kb64, []byte("$1"))
-	kb := make([]byte, base64.StdEncoding.DecodedLen(len(kb64)))
-	_, err = base64.StdEncoding.Decode(kb, kb64)
-	if err != nil {
-		fmt.Println("[!] couldn't decode public key:", err.Error())
-		return
-	}
-	buf := bytes.NewBuffer(kb)
-	var pubKey sshPublicKey
-	var length int32
-
-	err = binary.Read(buf, binary.BigEndian, &length)
-	if err != nil {
-		fmt.Println("[!] failed to read public key:", err.Error())
-		return
-	}
-
-	pubKey.Algorithm = make([]byte, length)
-	_, err = io.ReadFull(buf, pubKey.Algorithm)
-	if err != nil {
-		fmt.Println("[!] failed to decode public key:", err.Error())
-		return
-	}
-	if string(pubKey.Algorithm) != "ssh-rsa" {
-		fmt.Println("[!] invalid public key.")
-		err = fmt.Errorf("invalid public key")
-		return
-	}
-
-	err = binary.Read(buf, binary.BigEndian, &length)
-	if err != nil {
-		fmt.Println("[!] failed to read public key:", err.Error())
-		return
-	}
-	pubKey.Exponent = make([]byte, length)
-	_, err = io.ReadFull(buf, pubKey.Exponent)
-	if err != nil {
-		fmt.Println("[!] failed to decode public key:", err.Error())
-		return
-	}
-
-	err = binary.Read(buf, binary.BigEndian, &length)
-	if err != nil {
-		fmt.Println("[!] failed to read public key:", err.Error())
-		return
-	}
-	pubKey.Modulus = make([]byte, length)
-	_, err = io.ReadFull(buf, pubKey.Modulus)
-	if err != nil {
-		fmt.Println("[!] failed to decode public key:", err.Error())
-		return
-	}
-
-	key = new(rsa.PublicKey)
-	key.N = new(big.Int).SetBytes(pubKey.Modulus)
-	key.E = int(new(big.Int).SetBytes(pubKey.Exponent).Int64())
-	if key.N.BitLen() < 2047 {
-		fmt.Printf("[-] warning: SSH key is a weak key (consider ")
-		fmt.Println("upgrading to a 2048+ bit key).")
-	}
-	return
-}
-
-// Decode a byte slice into an RSA private key. Note that OpenSSH
-// private keys are in PEM format.
-func loadPrivateKey(name string) (key *rsa.PrivateKey, err error) {
-	kb, err := fetchKey(name, true)
-	block, _ := pem.Decode(kb)
-	if block == nil {
-		fmt.Println("[!] couldn't decode key file.")
-		os.Exit(1)
-	} else if block.Type != "RSA PRIVATE KEY" {
-		fmt.Println("[!] key is not a private key.")
-		os.Exit(1)
-	}
-
-	key, err = x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err == nil && key.PublicKey.N.BitLen() < 2047 {
-		fmt.Printf("[-] warning: SSH key is a weak key (consider ")
-		fmt.Printf("upgrading to a 2048+ bit key.")
-	}
-	return
-
-}
-
 // Generate a random box key, encrypt the key to the RSA public key,
 // package the box appropriately, and write it out to a file.
 func encrypt(in, out, keyfile string, local, armour bool) (err error) {
-	pub, err := loadPublicKey(keyfile, local)
+	pub, err := sshkey.LoadPublicKeyFile(keyfile, local)
 	if err != nil {
 		return
 	}
@@ -268,7 +152,7 @@ func packageBox(lockedKey, box []byte, armour bool) (pkg []byte, err error) {
 // Decrypt loads the box, recovers the key using the RSA private key, open
 // the box, and write the message to a file.
 func decrypt(in, out, keyfile string, armour bool) (err error) {
-	key, err := loadPrivateKey(keyfile)
+	key, err := sshkey.LoadPrivateKeyFile(keyfile)
 	if err != nil {
 		return
 	}
