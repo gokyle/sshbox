@@ -90,6 +90,8 @@ func main() {
 func encrypt(in, out, keyfile string, local, armour bool) (err error) {
 	pub, err := sshkey.LoadPublicKeyFile(keyfile, local)
 	if err != nil {
+		fmt.Printf("[!] failed to load the public key:\n\t%s\n",
+		    err.Error())
 		return
 	}
 	boxKey, err := secretbox.GenerateKey()
@@ -154,6 +156,8 @@ func packageBox(lockedKey, box []byte, armour bool) (pkg []byte, err error) {
 func decrypt(in, out, keyfile string, armour bool) (err error) {
 	key, err := sshkey.LoadPrivateKeyFile(keyfile)
 	if err != nil {
+		fmt.Printf("[!] failed to load the private key:\n\t%s\n",
+		    err.Error())
 		return
 	}
 
