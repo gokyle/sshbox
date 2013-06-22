@@ -26,6 +26,18 @@ Installation:
     $ go install github.com/gokyle/sshbox
 
 
+Signatures:
+The "signing" branch includes support RSASSA-PSS signatures; however, this
+is not present as of Go 1.1.1, but it is in tip. Due to the fact that most
+users are not likely to be running tip, I've split this into a separate
+branch. It adds the following flags:
+
+        -s="": SSH private key to sign the message with
+        -v="": SSH public key to validate the signature with.
+
+Once RSASSA-PSS support hits a distribution, I will merge this into master.
+
+
 License:
 sshbox is released under the ISC license. See the LICENSE file for the full
 test of the license.
