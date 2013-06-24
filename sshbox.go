@@ -220,6 +220,8 @@ func packageBox(lockedKey, box []byte, armour bool) (pkg []byte, err error) {
 }
 
 // sign handles signatures, armouring as required.
+/*
+ * TODO: switch signature scheme based on key type
 func sign(key *rsa.PrivateKey, message []byte, armour bool) (signature []byte, err error) {
 	hash := sha256.New()
 	hash.Write(message)
@@ -239,6 +241,7 @@ func sign(key *rsa.PrivateKey, message []byte, armour bool) (signature []byte, e
 	}
 	return
 }
+ */
 
 // Decrypt loads the box, recovers the key using the RSA private key, open
 // the box, and write the message to a file.
@@ -337,7 +340,10 @@ func unpackageBox(pkg []byte) (lockedKey, box []byte, err error) {
 	return pkgStruct.LockedKey, pkgStruct.Box, err
 }
 
+
 // verify checks the signature for a message
+/*
+ * TODO: verify needs to switch on key type
 func verify(key *rsa.PublicKey, signFile string, message []byte) (err error) {
 	signature, err := ioutil.ReadFile(signFile)
 	if err != nil {
@@ -361,4 +367,4 @@ func verify(key *rsa.PublicKey, signFile string, message []byte) (err error) {
 	err = rsa.VerifyPSS(key, crypto.SHA256, md, signature, nil)
 	return
 }
-
+ */
