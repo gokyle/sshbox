@@ -5,7 +5,6 @@ package main
 
 import (
 	"crypto/ecdsa"
-	//"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -218,30 +217,6 @@ func packageBox(lockedKey, box []byte, armour bool) (pkg []byte, err error) {
 	return
 }
 
-// sign handles signatures, armouring as required.
-/*
- * TODO: switch signature scheme based on key type
-func sign(key *rsa.PrivateKey, message []byte, armour bool) (signature []byte, err error) {
-	hash := sha256.New()
-	hash.Write(message)
-	md := hash.Sum(nil)
-	hash.Reset()
-	signature, err = rsa.SignPSS(rand.Reader, key, crypto.SHA256, md, nil)
-	if err != nil {
-		fmt.Println("[!] signature failed:", err.Error())
-		return
-	}
-
-	if armour {
-		var block pem.Block
-		block.Type = "SSHBOX ENCRYPTED FILE SIGNATURE"
-		block.Bytes = signature
-		signature = pem.EncodeToMemory(&block)
-	}
-	return
-}
- */
-
 // Decrypt loads the box, recovers the key using the RSA private key, open
 // the box, and write the message to a file.
 func decrypt(in, out, keyfile, verifykey string, armour bool) (err error) {
@@ -338,32 +313,3 @@ func unpackageBox(pkg []byte) (lockedKey, box []byte, err error) {
 	_, err = asn1.Unmarshal(block.Bytes, &pkgStruct)
 	return pkgStruct.LockedKey, pkgStruct.Box, err
 }
-
-
-// verify checks the signature for a message
-/*
- * TODO: verify needs to switch on key type
-func verify(key *rsa.PublicKey, signFile string, message []byte) (err error) {
-	signature, err := ioutil.ReadFile(signFile)
-	if err != nil {
-		fmt.Println("[!]", err.Error())
-		return
-	}
-
-	var block *pem.Block
-	block, signature = pem.Decode(signature)
-	if block != nil {
-		if block.Type != "SSHBOX ENCRYPTED FILE SIGNATURE" {
-			fmt.Println("[!] invalid signature")
-			err = fmt.Errorf("invalid signature")
-			return
-		}
-		signature = block.Bytes
-	}
-	hash := sha256.New()
-	hash.Write(message)
-	md := hash.Sum(nil)
-	err = rsa.VerifyPSS(key, crypto.SHA256, md, signature, nil)
-	return
-}
- */
