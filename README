@@ -18,6 +18,8 @@ Usage: sshbox [-ade] [-k key] source target
         -d=false: decrypt file
         -e=false: encrypt file
         -k="": SSH key file
+        -s="": SSH private key for signing
+        -v="": SSH public for signature verification
 
 
 Installation:
