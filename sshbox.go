@@ -4,7 +4,6 @@
 package main
 
 import (
-	"crypto"
 	"crypto/ecdsa"
 	//"crypto/elliptic"
 	"crypto/rand"
