@@ -105,18 +105,18 @@ func main() {
 // Generate a random box key, encrypt the key to the RSA public key,
 // package the box appropriately, and write it out to a file.
 func encrypt(in, out, keyfile, signkey string, local, armour bool) (err error) {
-	pub, keytype, err := sshkey.LoadPublicKeyFile(keyfile, local)
+	pub, err := sshkey.LoadPublicKeyFile(keyfile, local)
 	if err != nil {
 		fmt.Printf("[!] failed to load the public key:\n\t%s\n",
 		    err.Error())
 		return
 	}
-	switch keytype {
+	switch pub.Type {
 	case sshkey.KEY_RSA:
-		err = encryptRSA(in, out, pub.(*rsa.PublicKey), signkey,
+		err = encryptRSA(in, out, pub.Key.(*rsa.PublicKey), signkey,
 				 local, armour)
 	case sshkey.KEY_ECDSA:
-		err = encryptECDSA(in, out, pub.(*ecdsa.PublicKey), signkey,
+		err = encryptECDSA(in, out, pub.Key.(*ecdsa.PublicKey), signkey,
 				   local, armour)
 	default:
 		err = sshkey.ErrInvalidPrivateKey
