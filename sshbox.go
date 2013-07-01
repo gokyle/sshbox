@@ -26,7 +26,7 @@ type boxPackage struct {
 }
 
 type messageBox struct {
-	Message []byte
+	Message   []byte
 	Signature []byte `asn1:"optional"`
 }
 
@@ -108,16 +108,16 @@ func encrypt(in, out, keyfile, signkey string, local, armour bool) (err error) {
 	pub, err := sshkey.LoadPublicKeyFile(keyfile, local)
 	if err != nil {
 		fmt.Printf("[!] failed to load the public key:\n\t%s\n",
-		    err.Error())
+			err.Error())
 		return
 	}
 	switch pub.Type {
 	case sshkey.KEY_RSA:
 		err = encryptRSA(in, out, pub.Key.(*rsa.PublicKey), signkey,
-				 local, armour)
+			local, armour)
 	case sshkey.KEY_ECDSA:
 		err = encryptECDSA(in, out, pub.Key.(*ecdsa.PublicKey), signkey,
-				   local, armour)
+			local, armour)
 	default:
 		err = sshkey.ErrInvalidPrivateKey
 		fmt.Println("[!]", err.Error())
@@ -223,7 +223,7 @@ func decrypt(in, out, keyfile, verifykey string, armour bool) (err error) {
 	key, keytype, err := sshkey.LoadPrivateKeyFile(keyfile)
 	if err != nil {
 		fmt.Printf("[!] failed to load the private key:\n\t%s\n",
-		    err.Error())
+			err.Error())
 		return
 	}
 
@@ -291,7 +291,6 @@ func decryptECDSA(in, out string, key *ecdsa.PrivateKey, verifykey string, armou
 	err = ioutil.WriteFile(out, message, 0644)
 	return
 }
-
 
 // unpackageBox handles the loading of a box; it first attempts to decode the
 // box as a DER-encoded box. If this fails, it attempts to decode the box as
