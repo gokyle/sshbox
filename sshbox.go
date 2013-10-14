@@ -12,7 +12,7 @@ import (
 	"encoding/pem"
 	"flag"
 	"fmt"
-	"github.com/gokyle/cryptobox/secretbox"
+	"github.com/cryptobox/gocryptobox/secretbox"
 	"github.com/gokyle/ecies"
 	"github.com/gokyle/sshkey"
 	"io/ioutil"
@@ -126,8 +126,8 @@ func encrypt(in, out, keyfile, signkey string, local, armour bool) (err error) {
 }
 
 func encryptRSA(in, out string, key *rsa.PublicKey, signkey string, local, armour bool) (err error) {
-	boxKey, err := secretbox.GenerateKey()
-	if err != nil {
+	boxKey, ok := secretbox.GenerateKey()
+	if !ok {
 		fmt.Println("[!] failed to generate the box key.")
 		return
 	}
